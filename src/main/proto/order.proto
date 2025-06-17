@@ -10,13 +10,34 @@ service OrderService {
 }
 
 message OrderRequest {
-  string id = 1;
-  string product = 2;
+  string product_name = 2;
   int32 quantity = 3;
+  float unit_price = 4;
+  Payment payment = 6;
+}
+
+message Payment {
+  string method = 1;
+  optional CreditCard credit_card = 2;
+}
+
+message CreditCard {
+  int32 instalments = 1;
+  string card_brand = 2;
 }
 
 message OrderResponse {
   string id = 1;
-  string product = 2;
-  int32 quantity = 3;
+  string status = 2;
+  string estimated_delivery_date = 3;
+  string tracking_code = 4;
+  string created_at = 5;
+  Payment payment = 6;
+  Summary summary = 7;
+}
+
+message Summary {
+  int32 quantity = 1;
+  float unit_price = 2;
+  float total_price = 3;
 }
