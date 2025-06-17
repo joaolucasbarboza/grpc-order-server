@@ -3,9 +3,9 @@ spring:
     name: order-server
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/orders_db
+    username: admin
+    password: secret
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -15,6 +15,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
   grpc:
     server:

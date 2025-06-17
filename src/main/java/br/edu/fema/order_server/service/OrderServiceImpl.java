@@ -4,6 +4,7 @@ import br.edu.fema.grpc.OrderRequest;
 import br.edu.fema.grpc.OrderResponse;
 import br.edu.fema.grpc.OrderServiceGrpc;
 import br.edu.fema.order_server.entity.OrderEntity;
+import br.edu.fema.order_server.message.MessageProducer;
 import br.edu.fema.order_server.repository.OrderRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.UUID;
 public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
 
     private final OrderRepository orderRepository;
+    private final MessageProducer messageProducer;
 
     @Override
     public void createOrder(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
@@ -27,6 +29,15 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
 
         orderRepository.save(order);
         OrderEntity orderEntity = orderRepository.findById(order.getId()).get();
+
+        String message = String.format(
+                "Novo pedido criado -> ID: %s, Produto: %s, Quantidade: %d",
+                orderEntity.getId(),
+                orderEntity.getProduct(),
+                orderEntity.getQuantity()
+        );
+
+        messageProducer.sendMessage(message);
 
         OrderResponse orderResponse = OrderResponse
                 .newBuilder()
