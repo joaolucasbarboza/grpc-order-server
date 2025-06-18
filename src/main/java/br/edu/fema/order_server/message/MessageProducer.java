@@ -11,10 +11,18 @@ public class MessageProducer {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void sendMessage(String message) {
+    public void sendMessageOrder(String message) {
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY,
+                RabbitMQConfig.ORDER_EXCHANGE,
+                RabbitMQConfig.ORDER_ROUTING_KEY,
+                message
+        );
+    }
+
+    public void sendMessageTracking(String message) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.ORDER_EXCHANGE,
+                RabbitMQConfig.TRACKING_ROUTING_KEY,
                 message
         );
     }

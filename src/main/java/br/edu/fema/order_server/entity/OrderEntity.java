@@ -1,6 +1,9 @@
 package br.edu.fema.order_server.entity;
 
-import br.edu.fema.grpc.OrderRequest;
+import br.edu.fema.order_server.dto.CreditCardDto;
+import br.edu.fema.order_server.dto.OrderMessageDto;
+import br.edu.fema.order_server.dto.PaymentDto;
+import br.edu.fema.order_server.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,11 +24,14 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String product_name;
+    @Column(name = "product_name")
+    private String productName;
 
     private int quantity;
 
-    private float unit_price;
+    private OrderStatus status;
+
+    private BigDecimal unitPrice;
 
     private LocalDateTime order_date;
 
@@ -39,22 +45,32 @@ public class OrderEntity {
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
-    public OrderEntity converter(OrderRequest request) {
+    public static OrderEntity from(OrderMessageDto messageDto) {
         OrderEntity order = new OrderEntity();
-        order.setProduct_name(request.getProductName());
-        order.setQuantity(request.getQuantity());
-        order.setUnit_price(request.getUnitPrice());
+        order.setProductName(messageDto.productName());
+        order.setQuantity(messageDto.quantity());
+        order.setUnitPrice(BigDecimal.valueOf(messageDto.unitPrice().floatValue()));
         order.setOrder_date(LocalDateTime.now());
-        PaymentEntity payment = new PaymentEntity();
-        payment.setMethod(request.getPayment().getMethod());
 
-        CreditCardEntity creditCard = new CreditCardEntity();
-        creditCard.setCard_brand(request.getPayment().getCreditCard().getCardBrand());
-        creditCard.setInstalments(request.getPayment().getCreditCard().getInstalments());
-
-        payment.setCredit_card(creditCard);
-        order.setPayment(payment);
-
+        PaymentDto paymentDto = messageDto.payment();
+        if (paymentDto != null) {
+            PaymentEntity paymentEntity = getPaymentEntity(paymentDto);
+            order.setPayment(paymentEntity);
+        }
         return order;
+    }
+
+    private static PaymentEntity getPaymentEntity(PaymentDto paymentDto) {
+        PaymentEntity paymentEntity = new PaymentEntity();
+        paymentEntity.setMethod(paymentDto.method());
+
+        CreditCardDto creditCardDto = paymentDto.creditCard();
+        if (creditCardDto != null) {
+            CreditCardEntity creditCardEntity = new CreditCardEntity();
+            creditCardEntity.setCard_brand(creditCardDto.cardBrand());
+            creditCardEntity.setInstalments(creditCardDto.instalments());
+            paymentEntity.setCredit_card(creditCardEntity);
+        }
+        return paymentEntity;
     }
 }
